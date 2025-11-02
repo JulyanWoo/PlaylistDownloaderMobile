@@ -1,0 +1,89 @@
+# --- Node dependencies ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+
+# --- Environment files ---
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Logs ---
+logs
+*.log
+logs/**/*.log
+debug.log
+error.log
+*.pid
+*.seed
+*.pid.lock
+
+# --- OS generated files ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# --- IDE / Editor folders ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# --- Build and cache ---
+dist/
+build/
+.cache/
+coverage/
+.tmp/
+temp/
+.out/
+.babel_cache/
+.eslintcache
+
+# --- Testing ---
+jest-coverage/
+nyc_output/
+test-results/
+
+# --- Misc ---
+*.tgz
+*.tar.gz
+*.zip
+*.7z
+*.rar
+
+# --- PM2 / Docker ---
+.pids
+.pm2/
+.docker/
+docker-compose.override.yml
+
+# --- Local DB / data files ---
+data/
+*.sqlite
+*.db
+*.db3
+*.sqlite3
+*.sqlite-journal
+
+# --- Security ---
+# Avoid committing private keys or certificates
+*.pem
+*.key
+*.crt
+*.cert
+*.csr
+
+# --- Optional: lock out global OS folders ---
+*.orig
+*.rej
