@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { downloadYoutube, BASE_URL } from "../services/api";
+// eslint-disable-next-line import/no-unresolved
+import * as FileSystem from "expo-file-system/legacy";
+import { Platform } from "react-native";
 
 export default function PlayerScreen({ route }) {
   const { videoId, title } = route.params || {};
@@ -24,7 +27,63 @@ export default function PlayerScreen({ route }) {
         `https://www.youtube.com/watch?v=${videoId}`,
       );
       if (res?.error) setError(res.error);
-      else setDownloadUrl(res.downloadUrl || "");
+      else {
+        const d = res.downloadUrl || "";
+        if (!d) return;
+        const remote = `${BASE_URL}${d}`;
+        const fname = decodeURIComponent(
+          d.split("/").pop() || `${videoId}.mp3`,
+        );
+        if (Platform.OS === "web") {
+          const a = document.createElement("a");
+          a.href = remote;
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setDownloadUrl(remote);
+        } else {
+          if (Platform.OS === "android") {
+            const tmp =
+              (FileSystem.cacheDirectory || FileSystem.documentDirectory) +
+              fname;
+            await FileSystem.downloadAsync(remote, tmp);
+            const base64 = await FileSystem.readAsStringAsync(tmp, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            const perm =
+              await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+            if (!perm.granted) {
+              alert("Permiso de carpeta denegado");
+              setDownloadUrl(tmp);
+              return;
+            }
+            let dir = perm.directoryUri;
+            try {
+              dir = await FileSystem.StorageAccessFramework.makeDirectoryAsync(
+                dir,
+                "PlaylistDownloader",
+              );
+            } catch (_) {}
+            const fileUri =
+              await FileSystem.StorageAccessFramework.createFileAsync(
+                dir,
+                fname,
+                "audio/mpeg",
+              );
+            await FileSystem.writeAsStringAsync(fileUri, base64, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            alert(`Guardado en: ${fileUri}`);
+            setDownloadUrl(fileUri);
+          } else {
+            const local = FileSystem.documentDirectory + fname;
+            const resDownload = await FileSystem.downloadAsync(remote, local);
+            alert(`Guardado en: ${resDownload?.uri || local}`);
+            setDownloadUrl(local);
+          }
+        }
+      }
     } catch (_) {
       setError("Error descargando");
     } finally {
@@ -57,7 +116,7 @@ export default function PlayerScreen({ route }) {
         <View style={styles.downloadRow}>
           <TouchableOpacity
             style={styles.secondaryBtn}
-            onPress={() => Linking.openURL(`${BASE_URL}${downloadUrl}`)}
+            onPress={() => Linking.openURL(downloadUrl)}
           >
             <Text style={styles.btnText}>Abrir enlace</Text>
           </TouchableOpacity>

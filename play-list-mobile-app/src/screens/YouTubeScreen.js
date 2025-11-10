@@ -14,6 +14,9 @@ import { downloadYoutube } from "../services/api";
 import { addLink } from "../services/playlist";
 // eslint-disable-next-line import/no-unresolved
 import { Ionicons } from "@expo/vector-icons";
+// eslint-disable-next-line import/no-unresolved
+import * as FileSystem from "expo-file-system/legacy";
+import { Platform } from "react-native";
 
 // eslint-disable-next-line react/display-name
 const Loader = memo(() => (
@@ -122,7 +125,54 @@ export default function YouTubeScreen() {
 
   const onDownload = useCallback(async (videoId) => {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
-    await downloadYoutube(url);
+    const res = await downloadYoutube(url);
+    const d = res?.downloadUrl || "";
+    if (!d) return;
+    const remote = `${process.env.EXPO_PUBLIC_API_URL || (Platform.OS === "android" ? "http://10.0.2.2:3001" : "http://localhost:3001")}${d}`;
+    const fname = decodeURIComponent(d.split("/").pop() || `${videoId}.mp3`);
+    if (Platform.OS === "web") {
+      const a = document.createElement("a");
+      a.href = remote;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      if (Platform.OS === "android") {
+        const tmp =
+          (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fname;
+        await FileSystem.downloadAsync(remote, tmp);
+        const base64 = await FileSystem.readAsStringAsync(tmp, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const perm =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!perm.granted) {
+          alert("Permiso de carpeta denegado");
+          return;
+        }
+        let dir = perm.directoryUri;
+        try {
+          dir = await FileSystem.StorageAccessFramework.makeDirectoryAsync(
+            dir,
+            "PlaylistDownloader",
+          );
+        } catch (_) {}
+        const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          dir,
+          fname,
+          "audio/mpeg",
+        );
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        alert(`Guardado en: ${fileUri}`);
+      } else {
+        const local = FileSystem.documentDirectory + fname;
+        const resDownload = await FileSystem.downloadAsync(remote, local);
+        alert(`Guardado en: ${resDownload?.uri || local}`);
+      }
+    }
   }, []);
 
   const handleDownloadItem = useCallback(
