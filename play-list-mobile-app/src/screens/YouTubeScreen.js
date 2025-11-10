@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { searchVideos } from "../services/youtubeApi";
-import { downloadYoutube } from "../services/api";
+import { downloadYoutube, BASE_URL } from "../services/api";
 import { addLink } from "../services/playlist";
 // eslint-disable-next-line import/no-unresolved
 import { Ionicons } from "@expo/vector-icons";
@@ -128,7 +128,7 @@ export default function YouTubeScreen() {
     const res = await downloadYoutube(url);
     const d = res?.downloadUrl || "";
     if (!d) return;
-    const remote = `${process.env.EXPO_PUBLIC_API_URL || (Platform.OS === "android" ? "http://10.0.2.2:3001" : "http://localhost:3001")}${d}`;
+    const remote = `${BASE_URL}${d}`;
     const fname = decodeURIComponent(d.split("/").pop() || `${videoId}.mp3`);
     if (Platform.OS === "web") {
       const a = document.createElement("a");
