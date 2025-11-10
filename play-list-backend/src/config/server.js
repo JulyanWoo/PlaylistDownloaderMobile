@@ -3,11 +3,13 @@ import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
 import logger from "./logger.js";
+import helmet from "helmet";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
 const baseDir =
