@@ -1,7 +1,10 @@
-import express from "express";
-import cors from "cors";
+import { app } from "./config/server.js";
+import youtubeRoutes from "./routes/youtube.routes.js";
+import historyRoutes from "./routes/history.routes.js";
 
-const app = express();
-app.use(cors());
-
-app.listen(3000, () => console.log("Servidor corriendo en el puerto 3000"));
+app.use(youtubeRoutes);
+app.use(historyRoutes);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Servidor corriendo en el puerto ${port}`);
+});
