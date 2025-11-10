@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -6,41 +6,156 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  FlatList,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { searchVideos } from "../services/youtubeApi";
+import { downloadYoutube } from "../services/api";
+// eslint-disable-next-line import/no-unresolved
+import { Ionicons } from "@expo/vector-icons";
+
+// eslint-disable-next-line react/display-name
+const Loader = memo(() => (
+  <View style={styles.footer}>
+    <Text style={styles.footerText}>Cargando...</Text>
+  </View>
+));
+
+// eslint-disable-next-line react/display-name
+const VideoRow = memo(({ item, onPress, onDownload }) => (
+  <TouchableOpacity style={styles.row} onPress={() => onPress(item)}>
+    {item.thumbnail ? (
+      <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
+    ) : null}
+    <View style={styles.rowTextBox}>
+      <Text style={styles.rowTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
+      <Text style={styles.rowSub} numberOfLines={1}>
+        {item.uploader}
+      </Text>
+    </View>
+    <View style={styles.actions}>
+      <TouchableOpacity
+        style={[styles.circleBtn, styles.downloadBtn]}
+        onPress={() => onDownload(item)}
+      >
+        <Ionicons name="download" size={18} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.circleBtn, styles.listBtn]}
+        onPress={() => {}}
+      >
+        <Ionicons name="document-text" size={18} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  </TouchableOpacity>
+));
 
 export default function YouTubeScreen() {
   const navigation = useNavigation();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
 
   const onSearch = async () => {
     try {
       setLoading(true);
       setError("");
-      const data = await searchVideos(query);
-      setResults(data);
+      const r = await searchVideos(query, 1, 20);
+      const seen = new Set();
+      const unique = r.items.filter((it) => {
+        const k = it.videoId || it.id;
+        if (!k) return false;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+      setResults(unique);
+      setHasMore(r.hasMore);
+      setPage(1);
     } catch (_) {
-      setError("Error buscando");
+      setError("Error buscando videos");
     } finally {
       setLoading(false);
     }
   };
 
+  const onEndReached = async () => {
+    if (loading) return;
+    if (!hasMore) return;
+    try {
+      setLoading(true);
+      const next = page + 1;
+      const r = await searchVideos(query, next, 20);
+      setResults((prev) => {
+        const ids = new Set(prev.map((p) => p.videoId || p.id));
+        const add = r.items.filter((it) => {
+          const k = it.videoId || it.id;
+          if (!k) return false;
+          if (ids.has(k)) return false;
+          ids.add(k);
+          return true;
+        });
+        return [...prev, ...add];
+      });
+      setHasMore(r.hasMore);
+      setPage(next);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onPressNavigate = useCallback(
+    (item) => {
+      navigation.navigate("Player", {
+        videoId: item.videoId,
+        title: item.title,
+      });
+    },
+    [navigation],
+  );
+
+  const onDownload = useCallback(async (videoId) => {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    await downloadYoutube(url);
+  }, []);
+
+  const handleDownloadItem = useCallback(
+    (item) => {
+      if (item?.videoId) onDownload(item.videoId);
+    },
+    [onDownload],
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <VideoRow
+        item={item}
+        onPress={onPressNavigate}
+        onDownload={handleDownloadItem}
+      />
+    ),
+    [onPressNavigate, handleDownloadItem],
+  );
+
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>YouTube</Text>
+
       <View style={styles.searchBox}>
         <TextInput
           style={styles.input}
           value={query}
           onChangeText={setQuery}
-          placeholder="Buscar canciones o artistas"
+          placeholder="Buscar canciones o artistas..."
+          placeholderTextColor="#777"
         />
         <TouchableOpacity
-          style={styles.primaryBtn}
+          style={[styles.primaryBtn, (!query || loading) && styles.disabledBtn]}
           onPress={onSearch}
           disabled={!query || loading}
         >
@@ -52,32 +167,20 @@ export default function YouTubeScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <View style={styles.list}>
-        {results.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.row}
-            onPress={() =>
-              navigation.navigate("Player", {
-                videoId: item.videoId,
-                title: item.title,
-              })
-            }
-          >
-            {item.thumbnail ? (
-              <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-            ) : null}
-            <View style={styles.rowTextBox}>
-              <Text style={styles.rowTitle} numberOfLines={2}>
-                {item.title}
-              </Text>
-              <Text style={styles.rowSub} numberOfLines={1}>
-                {item.uploader}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <FlatList
+        style={styles.list}
+        data={results}
+        keyExtractor={(item) => `${item.videoId || item.id || "x"}`}
+        renderItem={renderItem}
+        onEndReachedThreshold={0.2}
+        onEndReached={onEndReached}
+        ListFooterComponent={loading ? Loader : null}
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={6}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews
+      />
     </View>
   );
 }
@@ -85,74 +188,127 @@ export default function YouTubeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#000",
     alignItems: "center",
     justifyContent: "flex-start",
     padding: 16,
   },
+  header: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#ff1a1a",
+    textShadowColor: "#ff3b3b",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+    marginTop: 24,
+    marginBottom: 20,
+  },
   searchBox: {
     width: "100%",
-    marginTop: 12,
-    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   input: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
+    borderColor: "#ff2e2e",
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    width: "100%",
-    marginBottom: 8,
-  },
-  error: {
-    color: "#c00",
-  },
-  buttonsRow: {
-    flexDirection: "row",
-    marginTop: 8,
+    color: "#fff",
+    backgroundColor: "#111",
+    shadowColor: "#ff0000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
   },
   primaryBtn: {
-    backgroundColor: "#cc0000",
+    backgroundColor: "#ff1a1a",
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 10,
+    shadowColor: "#ff0000",
+    shadowOpacity: 0.9,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  secondaryBtn: {
-    backgroundColor: "#222",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  disabledBtn: {
+    opacity: 0.5,
   },
   btnText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  error: {
+    color: "#ff5555",
+    marginTop: 10,
+    fontWeight: "500",
   },
   list: {
     width: "100%",
+    marginTop: 20,
+    flex: 1,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: "#111",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ff1a1a22",
+    shadowColor: "#ff0000",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
   },
   thumb: {
-    width: 96,
-    height: 54,
-    borderRadius: 6,
-    marginRight: 10,
-    backgroundColor: "#ddd",
+    width: 100,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: "#222",
   },
   rowTextBox: {
     flex: 1,
   },
+  actions: {
+    flexDirection: "row",
+    gap: 8,
+    marginLeft: 8,
+    alignItems: "center",
+  },
+  circleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  downloadBtn: {
+    backgroundColor: "#1e90ff",
+  },
+  listBtn: {
+    backgroundColor: "#7c3aed",
+  },
+  footer: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  footerText: {
+    color: "#fff",
+  },
   rowTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#fff",
   },
   rowSub: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: 13,
+    color: "#ff4444",
   },
 });

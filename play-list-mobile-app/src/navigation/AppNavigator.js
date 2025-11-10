@@ -10,11 +10,25 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: "#000",
+          },
+          headerTitleStyle: {
+            color: "#ff1a1a",
+            textShadowColor: "#ff3b3b",
+            textShadowRadius: 15,
+            fontWeight: "600",
+            fontSize: 22,
+          },
+          headerTintColor: "#ff1a1a",
+        }}
+      >
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: "Bienvenido" }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen name="YouTube" component={YouTubeScreen} />
         <Stack.Screen name="Player" component={PlayerScreen} />

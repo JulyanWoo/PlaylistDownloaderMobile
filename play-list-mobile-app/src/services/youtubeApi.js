@@ -21,13 +21,15 @@ const mapItems = (items) => {
   });
 };
 
-export async function searchVideos(q) {
-  if (!q) return [];
+export async function searchVideos(q, page = 1, pageSize = 20) {
+  if (!q) return { items: [], hasMore: false };
   const r = await fetch(
-    `${BASE_URL}/api/youtube/search?q=${encodeURIComponent(q)}`,
+    `${BASE_URL}/api/youtube/search?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`,
   );
   if (!r.ok) throw new Error("search failed");
   const data = await r.json();
   const items = Array.isArray(data) ? data : data.items || [];
-  return mapItems(items);
+  const mapped = mapItems(items);
+  const hasMore = !!data.hasMore && mapped.length > 0;
+  return { items: mapped, hasMore };
 }
