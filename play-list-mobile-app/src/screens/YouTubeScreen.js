@@ -11,6 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { searchVideos } from "../services/youtubeApi";
 import { downloadYoutube } from "../services/api";
+import { addLink } from "../services/playlist";
 // eslint-disable-next-line import/no-unresolved
 import { Ionicons } from "@expo/vector-icons";
 
@@ -22,7 +23,7 @@ const Loader = memo(() => (
 ));
 
 // eslint-disable-next-line react/display-name
-const VideoRow = memo(({ item, onPress, onDownload }) => (
+const VideoRow = memo(({ item, onPress, onDownload, onAddToList }) => (
   <TouchableOpacity style={styles.row} onPress={() => onPress(item)}>
     {item.thumbnail ? (
       <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
@@ -44,7 +45,7 @@ const VideoRow = memo(({ item, onPress, onDownload }) => (
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.circleBtn, styles.listBtn]}
-        onPress={() => {}}
+        onPress={() => onAddToList(item)}
       >
         <Ionicons name="document-text" size={18} color="#fff" />
       </TouchableOpacity>
@@ -131,15 +132,22 @@ export default function YouTubeScreen() {
     [onDownload],
   );
 
+  const handleAddToList = useCallback(async (item) => {
+    if (!item?.videoId) return;
+    const url = `https://www.youtube.com/watch?v=${item.videoId}`;
+    await addLink(url);
+  }, []);
+
   const renderItem = useCallback(
     ({ item }) => (
       <VideoRow
         item={item}
         onPress={onPressNavigate}
         onDownload={handleDownloadItem}
+        onAddToList={handleAddToList}
       />
     ),
-    [onPressNavigate, handleDownloadItem],
+    [onPressNavigate, handleDownloadItem, handleAddToList],
   );
 
   return (

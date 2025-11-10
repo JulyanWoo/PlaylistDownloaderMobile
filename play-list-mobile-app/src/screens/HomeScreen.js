@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 // eslint-disable-next-line import/no-unresolved
 import { Ionicons } from "@expo/vector-icons";
+import { sharePlaylist } from "../services/playlist";
 
 export default function HomeScreen({ navigation }) {
   return (
@@ -30,6 +31,15 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.btnText}>Spotify</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity style={styles.shareBtn} onPress={sharePlaylist}>
+        <Ionicons
+          name="share-outline"
+          size={18}
+          color="#fff"
+          style={styles.icon}
+        />
+        <Text style={styles.btnText}>Compartir lista</Text>
+      </TouchableOpacity>
       <View style={styles.footer}>
         <Image
           source={{
@@ -107,5 +117,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     marginRight: 8,
+  },
+  shareBtn: {
+    backgroundColor: "#1e90ff",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
   },
 });
