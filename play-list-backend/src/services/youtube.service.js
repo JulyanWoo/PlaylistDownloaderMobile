@@ -17,22 +17,26 @@ const getMetadata = async (url) => {
     channelId: details.channelId,
     thumbnails: details.thumbnails,
     videoId: details.videoId,
-    url: details.video_url
+    url: details.video_url,
   };
 };
 
 const downloadViaYtDlp = async (url, outputPath, dir) => {
   ensureDir(dir);
   const fileName = path.basename(outputPath);
-  await ytDlp(url, {
-    extractAudio: true,
-    audioFormat: "mp3",
-    audioQuality: 0,
-    output: fileName,
-    ffmpegLocation: ffmpegPath,
-    "ffmpeg-location": ffmpegPath,
-    noWarnings: true
-  }, { cwd: dir });
+  await ytDlp(
+    url,
+    {
+      extractAudio: true,
+      audioFormat: "mp3",
+      audioQuality: 0,
+      output: fileName,
+      ffmpegLocation: ffmpegPath,
+      "ffmpeg-location": ffmpegPath,
+      noWarnings: true,
+    },
+    { cwd: dir },
+  );
   return path.join(dir, fileName);
 };
 

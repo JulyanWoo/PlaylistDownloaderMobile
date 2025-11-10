@@ -5,10 +5,16 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenido</Text>
       <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate("YouTube")}>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          onPress={() => navigation.navigate("YouTube")}
+        >
           <Text style={styles.btnText}>YouTube</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryBtn} onPress={() => navigation.navigate("Spotify")}>
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => navigation.navigate("Spotify")}
+        >
           <Text style={styles.btnText}>Spotify</Text>
         </TouchableOpacity>
       </View>

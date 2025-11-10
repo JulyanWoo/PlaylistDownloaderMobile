@@ -6,58 +6,38 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
-  Linking,
 } from "react-native";
-import { getYoutubeMetadata, downloadYoutube, BASE_URL } from "../services/api";
+import { useNavigation } from "@react-navigation/native";
+import { searchVideos } from "../services/youtubeApi";
 
 export default function YouTubeScreen() {
+  const navigation = useNavigation();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [metadata, setMetadata] = useState(null);
+  const [results, setResults] = useState([]);
   const [error, setError] = useState("");
-  const [downloading, setDownloading] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState("");
 
   const onSearch = async () => {
     try {
       setLoading(true);
       setError("");
-      setMetadata(null);
-      const info = await getYoutubeMetadata(query.trim());
-      if (info?.error) setError(info.error);
-      else setMetadata(info);
-    } catch (e) {
+      const data = await searchVideos(query);
+      setResults(data);
+    } catch (_) {
       setError("Error buscando");
     } finally {
       setLoading(false);
     }
   };
 
-  const onDownload = async () => {
-    try {
-      setDownloading(true);
-      setError("");
-      setDownloadUrl("");
-      const res = await downloadYoutube(query.trim());
-      if (res?.error) setError(res.error);
-      else setDownloadUrl(res.downloadUrl || "");
-    } catch (e) {
-      setError("Error descargando");
-    } finally {
-      setDownloading(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>YouTube</Text>
       <View style={styles.searchBox}>
-        <Text style={styles.label}>URL de YouTube</Text>
         <TextInput
           style={styles.input}
           value={query}
           onChangeText={setQuery}
-          placeholder="https://www.youtube.com/watch?v=..."
+          placeholder="Buscar canciones o artistas"
         />
         <TouchableOpacity
           style={styles.primaryBtn}
@@ -72,46 +52,32 @@ export default function YouTubeScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {metadata ? (
-        <View style={styles.card}>
-          {Array.isArray(metadata?.thumbnails) &&
-          metadata.thumbnails.length > 0 ? (
-            <Image
-              source={{
-                uri: (
-                  metadata.thumbnails[metadata.thumbnails.length - 1] ||
-                  metadata.thumbnails[0]
-                ).url,
-              }}
-              style={styles.thumb}
-            />
-          ) : null}
-          <Text style={styles.cardTitle}>{metadata.title}</Text>
-          <Text style={styles.cardSub}>{metadata.author}</Text>
-          <View style={styles.buttonsRow}>
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={onDownload}
-              disabled={downloading}
-            >
-              <Text style={styles.btnText}>
-                {downloading ? "Descargando..." : "Descargar MP3"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : null}
-
-      {downloadUrl ? (
-        <View style={styles.downloadRow}>
+      <View style={styles.list}>
+        {results.map((item) => (
           <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => Linking.openURL(`${BASE_URL}${downloadUrl}`)}
+            key={item.id}
+            style={styles.row}
+            onPress={() =>
+              navigation.navigate("Player", {
+                videoId: item.videoId,
+                title: item.title,
+              })
+            }
           >
-            <Text style={styles.btnText}>Abrir enlace</Text>
+            {item.thumbnail ? (
+              <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
+            ) : null}
+            <View style={styles.rowTextBox}>
+              <Text style={styles.rowTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <Text style={styles.rowSub} numberOfLines={1}>
+                {item.uploader}
+              </Text>
+            </View>
           </TouchableOpacity>
-        </View>
-      ) : null}
+        ))}
+      </View>
     </View>
   );
 }
@@ -124,19 +90,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     padding: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    alignSelf: "flex-start",
-  },
   searchBox: {
     width: "100%",
     marginTop: 12,
     marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    color: "#333",
   },
   input: {
     borderWidth: 1,
@@ -149,28 +106,6 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#c00",
-  },
-  card: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 8,
-  },
-  thumb: {
-    width: "100%",
-    height: 180,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  cardSub: {
-    fontSize: 14,
-    color: "#666",
   },
   buttonsRow: {
     flexDirection: "row",
@@ -192,9 +127,32 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  downloadRow: {
+  list: {
     width: "100%",
-    alignItems: "flex-start",
-    marginTop: 8,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  thumb: {
+    width: 96,
+    height: 54,
+    borderRadius: 6,
+    marginRight: 10,
+    backgroundColor: "#ddd",
+  },
+  rowTextBox: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  rowSub: {
+    fontSize: 12,
+    color: "#666",
   },
 });
