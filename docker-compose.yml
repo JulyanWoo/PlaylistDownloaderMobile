@@ -1,0 +1,11 @@
+services:
+  backend:
+    build:
+      context: ./play-list-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - CLEANUP_DAYS=7
+    volumes:
+      - ./play-list-backend/downloads:/app/downloads

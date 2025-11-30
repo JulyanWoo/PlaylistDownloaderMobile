@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-// eslint-disable-next-line import/no-unresolved
+
 import { Ionicons } from "@expo/vector-icons";
 import { sharePlaylist } from "../services/playlist";
 
