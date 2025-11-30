@@ -5,12 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Platform,
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { downloadYoutube, BASE_URL } from "../services/api";
 // eslint-disable-next-line import/no-unresolved
 import * as FileSystem from "expo-file-system/legacy";
-import { Platform } from "react-native";
 
 export default function PlayerScreen({ route }) {
   const { videoId, title } = route.params || {};
@@ -58,13 +58,7 @@ export default function PlayerScreen({ route }) {
               setDownloadUrl(tmp);
               return;
             }
-            let dir = perm.directoryUri;
-            try {
-              dir = await FileSystem.StorageAccessFramework.makeDirectoryAsync(
-                dir,
-                "PlaylistDownloader",
-              );
-            } catch (_) {}
+            const dir = perm.directoryUri;
             const fileUri =
               await FileSystem.StorageAccessFramework.createFileAsync(
                 dir,

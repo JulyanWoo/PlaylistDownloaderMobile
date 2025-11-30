@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   FlatList,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { searchVideos } from "../services/youtubeApi";
@@ -16,7 +17,6 @@ import { addLink } from "../services/playlist";
 import { Ionicons } from "@expo/vector-icons";
 // eslint-disable-next-line import/no-unresolved
 import * as FileSystem from "expo-file-system/legacy";
-import { Platform } from "react-native";
 
 // eslint-disable-next-line react/display-name
 const Loader = memo(() => (
@@ -151,13 +151,7 @@ export default function YouTubeScreen() {
           alert("Permiso de carpeta denegado");
           return;
         }
-        let dir = perm.directoryUri;
-        try {
-          dir = await FileSystem.StorageAccessFramework.makeDirectoryAsync(
-            dir,
-            "PlaylistDownloader",
-          );
-        } catch (_) {}
+        const dir = perm.directoryUri;
         const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
           dir,
           fname,
