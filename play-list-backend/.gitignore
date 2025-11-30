@@ -75,6 +75,7 @@ data/
 *.db3
 *.sqlite3
 *.sqlite-journal
+downloads/
 
 # --- Security ---
 # Avoid committing private keys or certificates

@@ -2,6 +2,7 @@ import { getMetadata, downloadToMp3 } from "../services/youtube.service.js";
 import { makeOutputPath, addToMemory } from "../utils/fileHelper.js";
 import { baseDir } from "../config/server.js";
 import logger from "../config/logger.js";
+import path from "path";
 
 const metadata = async (req, res) => {
   let url;
@@ -24,7 +25,7 @@ const download = async (req, res) => {
     const info = await getMetadata(url);
     const outputPath = makeOutputPath(baseDir, info.title);
     await downloadToMp3(url, outputPath, baseDir);
-    const fileName = outputPath.split("\\").pop();
+    const fileName = path.basename(outputPath);
     const downloadUrl = `/downloads/${fileName}`;
     addToMemory({ title: info.title, url, path: outputPath });
     logger.info({ title: info.title, file: fileName });
