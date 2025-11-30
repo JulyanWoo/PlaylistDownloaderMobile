@@ -9,7 +9,7 @@
     "newArchEnabled": false,
 
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,29 +18,23 @@
       "supportsTablet": true
     },
 
-    "extra": {
-      "apiUrl": "http://192.168.3.53:3001",
-      "eas": {
-        "projectId": "796db245-30a4-4dbe-b792-44ad3da59281"
-      }
-    },
-
     "android": {
       "package": "com.ytdownloader",
+      "usesCleartextTraffic": true,
       "permissions": [
         "READ_MEDIA_VIDEO",
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_AUDIO"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
 
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     }
   }
 }

@@ -8,8 +8,19 @@ import helmet from "helmet";
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(helmet());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  }),
+);
 app.use(express.json());
 
 const baseDir =

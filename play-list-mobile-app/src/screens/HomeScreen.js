@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-
 import { Ionicons } from "@expo/vector-icons";
 import { sharePlaylist } from "../services/playlist";
+import eventBus from "../utils/eventBus";
 
 export default function HomeScreen({ navigation }) {
   return (
@@ -48,6 +48,14 @@ export default function HomeScreen({ navigation }) {
           style={styles.githubIcon}
         />
         <Text style={styles.footerText}>@julyanWoo</Text>
+        
+        {/* Botón Debug Visible */}
+        <TouchableOpacity 
+          style={styles.debugBtn} 
+          onPress={() => eventBus.emit("toggleDebug")}
+        >
+          <Ionicons name="bug-outline" size={16} color="#aaa" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -126,5 +134,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
+  },
+  debugBtn: {
+    backgroundColor: "#333",
+    padding: 6,
+    borderRadius: 6,
+    marginLeft: 8,
   },
 });
