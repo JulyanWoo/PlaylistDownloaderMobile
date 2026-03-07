@@ -1,21 +1,29 @@
+import React, { useState, useEffect } from "react";
+import { View } from "react-native";
+import AppNavigator from "./src/navigation/AppNavigator";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Button } from "react-native";
+import DebugPanel from "./src/components/DebugPanel";
+import eventBus from "./src/utils/eventBus";
 
 export default function App() {
+  const [debugVisible, setDebugVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleDebug = () => setDebugVisible((prev) => !prev);
+    eventBus.on("toggleDebug", toggleDebug);
+    return () => eventBus.off("toggleDebug", toggleDebug);
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <>
       <StatusBar style="auto" />
-      <Text>mike gay!</Text>
-      <Button title="Hola" onPress={() => alert("Hi")} />
-    </View>
+      <View style={{ flex: 1 }}>
+        <AppNavigator />
+      </View>
+      <DebugPanel
+        visible={debugVisible}
+        onClose={() => setDebugVisible(false)}
+      />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

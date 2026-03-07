@@ -1,29 +1,40 @@
 {
   "expo": {
-    "name": "play-list-mobile-app",
+    "name": "yt downloader",
     "slug": "play-list-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
+      "package": "com.ytdownloader",
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "READ_MEDIA_VIDEO",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_AUDIO"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
+
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     }
   }
 }
