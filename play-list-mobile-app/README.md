@@ -1,7 +1,9 @@
 ESLINT format: npx eslint . --ext .js,.jsx,.ts,.tsx --fix
 
 Arquitectura:
+
 PlaylistDownloaderMobile
+
 ├─ play-list-mobile-app        ← Proyecto Expo (frontend)
 │  ├─ .expo                    ← Config interna de Expo (no tocar)
 │  ├─ App.js                   ← Punto principal (ideal para montar Navigation + Context)
