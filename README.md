@@ -2,6 +2,9 @@
 
 Aplicación móvil (Expo/React Native) con backend Node.js para buscar, extraer metadata y descargar audio MP3 desde YouTube. Este README documenta arquitectura, tecnologías, requisitos, configuración, ejecución local y con Docker, además de un recorrido por los módulos clave.
 
+
+<img width="315" height="215" alt="imagen" src="https://github.com/user-attachments/assets/4768be79-99df-42d5-b0e0-ad6e6b33db72" />
+
 ## Estructura del repositorio
 
 - play-list-mobile-app/ — Frontend móvil con Expo (React Native).
